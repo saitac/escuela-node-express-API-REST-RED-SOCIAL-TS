@@ -1,6 +1,9 @@
 import express, {Express, Request, Response} from "express"
 import cors from "cors"
-import { dbConnection } from "./database/connection";
+import { dbConnection } from "./database/connection"
+import { userRouter } from "./routes/user"
+import { followRouter } from "./routes/follow"
+import { publicationRouter } from "./routes/publication"
 
 
 // Inicializando la aplicación
@@ -24,9 +27,15 @@ app.use(express.json());
  // para parsing application/x-www-form-urlencoded
  app.use(express.urlencoded({extended: true}));
 
+ 
+ // Cargo las rutas de User, follow, publication 
+ app.use("/api",userRouter);
+ app.use("/api",followRouter);
+ app.use("/api",publicationRouter);
+
  // ruta de prueba
  app.get("/", (req: Request, res: Response) => {
-    res.send("Hola Mundo, TS - Salvasoft");
+    res.status(200).send("Hola Mundo, TS - Salvasoft");
  });
 
  // Crear el servidor y escuchar peticiones, es importante pasarle un puerto por donde escuhar las peticiones
