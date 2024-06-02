@@ -10,7 +10,7 @@ const userSchema = new Schema({
         type: String,
         require: true
     },
-    mail: {
+    email: {
         type: String,
         require: true   
     },
@@ -20,7 +20,7 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
-        default: "role_user"
+        default: "role_user",
     },
     image: {
         type: String,
@@ -31,6 +31,7 @@ const userSchema = new Schema({
         default: Date.now
     }
 });
+
 
 const userModel = model("User", userSchema, "users");
 
