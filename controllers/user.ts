@@ -3,10 +3,12 @@ import bcrypt from "bcrypt"
 import userModel from "../models/user"
 import { servCreateToken } from "../services/jwt"
 import IntUser from "../interfaces/user"
+import { ClsUser } from "../classes/classes"
 
 const userPrueba = (req: Request, res: Response) => {
     return res.status(200).send({
-        message: "Mensaje enviado desde: controllers/user.ts"
+        message: "Mensaje enviado desde: controllers/user.ts",
+        session: req.body.session
     })
 }
 
@@ -72,8 +74,6 @@ const userLogin = async (req: Request, res: Response) => {
         // buscar el usuario en la base de datos
         const result: IntUser | null = await userModel.findOne({email: parametros.email.toLowerCase()});
         // .select({password: 0})
-
-        console.log(result);
         
         if ( result !== null ) {
 
@@ -117,9 +117,37 @@ const userLogin = async (req: Request, res: Response) => {
     }
 }
 
+const userProfile = async (req: Request, res: Response) => {
+    try{
+
+        const id = req.params.id //new mongoose.Types.ObjectId(id)
+
+        const usuario: ClsUser | null = await userModel.findById(id).select({password: 0, role: 0}).exec();
+
+        if ( usuario === null ) { 
+            throw new Error("El usuario no existe");
+        }
+        
+        return res.status(200).json({
+            status: "success",
+            user: usuario
+        })
+
+    } catch( error ) {
+        if ( error instanceof Error ) {
+            return res.status(400).json({
+                status: "error",
+                message: error.message
+            })
+        }
+
+    }
+}
+
 
 export {
     userPrueba,
     userRegister,
-    userLogin
+    userLogin,
+    userProfile
 }

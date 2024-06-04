@@ -2,9 +2,9 @@ import { Schema, model} from "mongoose"
 import IntUser from "../interfaces/user";
 
 const userSchema = new Schema<IntUser>({
-    _id: {
+    /*_id: {
         type: String,
-    },
+    },*/
     name: {
         type: String,
         require: true

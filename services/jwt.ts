@@ -1,24 +1,14 @@
 import jwt from "jwt-simple"
 import moment from "moment"
 import IntUser from "../interfaces/user";
+import { ClsSession } from "../classes/classes";
 
 // Clave secreta
 const secretPassword = "clave#secreta!del2024";
 
 const servCreateToken = (user: IntUser) => {
-    const payload = {
-        _id: user._id,
-        name: user.name,
-        surname: user.surname,
-        nick: user.nick,
-        email: user.email,
-        role: user.role,
-        image: user.image,
-        iat: moment().unix(),
-        exp: moment().add(30, "days").unix()
-    };
-
-    return jwt.encode(payload, secretPassword);
+    let session: ClsSession = new ClsSession(user, moment().unix(), moment().add(30, "days").unix())
+    return jwt.encode(session, secretPassword);
 }
 
 export {

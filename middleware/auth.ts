@@ -3,21 +3,28 @@ import {Request, Response, NextFunction} from "express"
 import jwt from "jwt-simple"
 import moment from "moment"
 import { secretPassword } from "../services/jwt"
+import { ClsSession } from "../classes/classes"
 
 // función de autenticación
 
 const auth = (req: Request, res: Response, next: NextFunction) => {
     try {
 
-        console.log("HOLA0")
-
-       /* if ( !req.headers.authorization ) {
+       if ( !req.headers.authorization ) {
             throw new Error("La petición no tiene la cabecera de autenticación");
-        }*/
+        }
 
-        console.log(req.headers.authorization);
+        const token: string = req.headers.authorization;
+        
+        const session: ClsSession = jwt.decode(token, secretPassword);
 
+        // comprobar expiración del token
+        if ( session.exp <= moment().unix() ) {
+            throw new Error("El token ha expirado");
+        }
 
+        // Agregar datos del usuario al body del request
+        req.body.session=session;
         
 
     }catch( error ) {
@@ -29,17 +36,8 @@ const auth = (req: Request, res: Response, next: NextFunction) => {
         }
     }
 
-    console.log("HOLA1")
     next();
 }
-
-// comprobar si me llega la cabecera de auth
-
-// decodificar el token
-
-// agregar datos de usuario a request
-
-// pasar a la ejecución de la acción
 
 export {
     auth
