@@ -4,6 +4,7 @@ import userModel from "../models/user"
 import { servCreateToken } from "../services/jwt"
 import IntUser from "../interfaces/user"
 import { ClsUser } from "../classes/classes"
+import mongoose from "mongoose"
 
 const userPrueba = (req: Request, res: Response) => {
     return res.status(200).send({
@@ -144,10 +145,42 @@ const userProfile = async (req: Request, res: Response) => {
     }
 }
 
+const userList = async (req: Request, res: Response) => {
+    try {
+
+        console.log(req.params);
+
+        const x = await userModel.find({}).skip(2).exec();
+        
+        
+        
+        //https://www.npmjs.com/package/mongoose-paginate-v2
+        //https://www.google.com/search?q=mongoose-paginate-v2+examples&rlz=1C1GCEU_esCL930CL930&oq=mongoose-paginate-v2+examples&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIGCAEQRRg80gEIMjE3MmowajmoAgCwAgE&sourceid=chrome&ie=UTF-8#fpstate=ive&vld=cid:f668f8e4,vid:6hUUOZxVVCo,st:0
+        
+        // https://www.google.com/search?sca_esv=23c20ded85caa685&rlz=1C1GCEU_esCL930CL930&q=mongoose-paginate-v2+typescript+example&tbm=vid&source=lnms&prmd=visnbmtz&sa=X&ved=2ahUKEwidgq2RkcWGAxWcLbkGHXrhOx0Q0pQJegQIDRAB&biw=1920&bih=953&dpr=1#fpstate=ive&vld=cid:128b0d1c,vid:mARc0pOX4i0,st:0
+    
+        return res.status(200).json({
+            status: "success",
+            message: "OK!",
+            x
+        })
+
+    } catch (error ) {
+
+        if ( error instanceof Error ) {
+            return res.status(400).json({
+                status: "error",
+                message: error.message
+            })
+        }
+
+    }  
+}
 
 export {
     userPrueba,
     userRegister,
     userLogin,
-    userProfile
+    userProfile,
+    userList
 }

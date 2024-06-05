@@ -1,4 +1,5 @@
 import { Schema, model} from "mongoose"
+import paginate from "mongoose-paginate-v2"
 import IntUser from "../interfaces/user";
 
 const userSchema = new Schema<IntUser>({
@@ -36,6 +37,7 @@ const userSchema = new Schema<IntUser>({
     }
 });
 
+userSchema.plugin(paginate);
 
 const userModel = model("User", userSchema, "users");
 
