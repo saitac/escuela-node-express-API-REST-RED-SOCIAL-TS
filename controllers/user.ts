@@ -1,10 +1,11 @@
 import {Request, Response} from "express"
 import bcrypt from "bcrypt"
+import jwt from "jwt-simple"
 import userModel from "../models/user"
-import { servCreateToken } from "../services/jwt"
+import { secretPassword, servCreateToken } from "../services/jwt"
 import IntUser from "../interfaces/user"
-import { ClsUser } from "../classes/classes"
-import mongoose from "mongoose"
+import { ClsSession, ClsUser } from "../classes/classes"
+import { isNumeric } from "validator"
 
 const userPrueba = (req: Request, res: Response) => {
     return res.status(200).send({
@@ -148,21 +149,23 @@ const userProfile = async (req: Request, res: Response) => {
 const userList = async (req: Request, res: Response) => {
     try {
 
-        console.log(req.params);
+        let page: number = 1;
 
-        const x = await userModel.find({}).skip(2).exec();
-        
-        
-        
-        //https://www.npmjs.com/package/mongoose-paginate-v2
-        //https://www.google.com/search?q=mongoose-paginate-v2+examples&rlz=1C1GCEU_esCL930CL930&oq=mongoose-paginate-v2+examples&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIGCAEQRRg80gEIMjE3MmowajmoAgCwAgE&sourceid=chrome&ie=UTF-8#fpstate=ive&vld=cid:f668f8e4,vid:6hUUOZxVVCo,st:0
-        
-        // https://www.google.com/search?sca_esv=23c20ded85caa685&rlz=1C1GCEU_esCL930CL930&q=mongoose-paginate-v2+typescript+example&tbm=vid&source=lnms&prmd=visnbmtz&sa=X&ved=2ahUKEwidgq2RkcWGAxWcLbkGHXrhOx0Q0pQJegQIDRAB&biw=1920&bih=953&dpr=1#fpstate=ive&vld=cid:128b0d1c,vid:mARc0pOX4i0,st:0
+        if ( req.params.page && isNumeric(req.params.page)) {
+            page = +req.params.page;
+        }
+
+        const paginateOptions = {
+            sort: {_id: 1},
+            limit: 5,
+            page
+        };
+
+        const users  = await userModel.paginate({}, paginateOptions);
     
         return res.status(200).json({
             status: "success",
-            message: "OK!",
-            x
+            users
         })
 
     } catch (error ) {
@@ -177,10 +180,54 @@ const userList = async (req: Request, res: Response) => {
     }  
 }
 
+const userUpdate = (req: Request, res: Response) => {
+    try {
+        
+        // comprobar que me llegan bien (+ validación)
+        if ( !(req.body.name && req.body.nick && req.body.email && req.body.password ) ) {
+            throw new Error("Faltan datos por enviar");
+        }
+
+        // comprobar que el usuario existe
+        //userModel
+
+        
+
+
+
+        /*const x: ClsUser = req.body;
+
+        if ( x instanceof ClsUser ) {
+            console.log("OK!")
+        } else {
+            console.log("NOO OK!")
+        }*/
+
+        
+        
+
+        return res.status(200).json({
+            status: "success",
+            message: "OK!"
+        });
+
+    } catch( error ) {
+
+        if ( error instanceof Error) {
+            return res.status(400).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+    }
+}
+
 export {
     userPrueba,
     userRegister,
     userLogin,
     userProfile,
-    userList
+    userList,
+    userUpdate
 }

@@ -6,6 +6,7 @@ class ClsUser implements IntUser {
     _id?: string
     name: string
     surname: string
+    bio: string
     nick: string
     email: string
     password: string
@@ -13,11 +14,12 @@ class ClsUser implements IntUser {
     image?: string
     created_at?: Date
 
-    constructor(_id: string = "", name: string = "", surname: string = "", nick: string = "", email: string = "", 
+    constructor(_id: string = "", name: string = "", surname: string = "", bio: string = "", nick: string = "", email: string = "", 
     password: string = "", role: string = "", image: string = "", created_at: Date = new Date(Date.now())){
         this._id = _id;
         this.name = name;
         this.surname = surname;
+        this.bio = bio;
         this.nick = nick;
         this.email = email;
         this.password = password;

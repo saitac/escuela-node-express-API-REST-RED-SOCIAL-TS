@@ -3,6 +3,7 @@ interface IntUser {
     _id?: string,
     name: string,
     surname: string,
+    bio: string,
     nick: string,
     email: string,
     password: string,
