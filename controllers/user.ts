@@ -31,8 +31,8 @@ const userRegister = async (req: Request, res: Response) => {
         // control de usuarios duplicados
         const result = await userModel.find({
             $or: [
-                {email: user_to_save.email!.toLowerCase()},
-                {nick: user_to_save.nick!.toLowerCase()}
+                {email: user_to_save.email!}, //.toLowerCase()
+                {nick: user_to_save.nick!} //.toLowerCase()
             ]
         }).exec();
 
@@ -180,35 +180,66 @@ const userList = async (req: Request, res: Response) => {
     }  
 }
 
-const userUpdate = (req: Request, res: Response) => {
+const userUpdate = async (req: Request, res: Response) => {
     try {
-        
+
         // comprobar que me llegan bien (+ validación)
-        if ( !(req.body.name && req.body.nick && req.body.email && req.body.password ) ) {
+        if ( !(req.body.id && req.body.name && req.body.nick && req.body.email && req.body.password ) ) {
             throw new Error("Faltan datos por enviar");
         }
 
-        // comprobar que el usuario existe
-        //userModel
-
+        const userAactualizar: ClsUser = new ClsUser();
         
+        userAactualizar._id = req.body.id !== undefined ? req.body.id : "";
+        userAactualizar.name = req.body.name !== undefined ? req.body.name : "";
+        userAactualizar.surname = req.body.surname !== undefined ? req.body.surname : "";
+        userAactualizar.bio = req.body.bio !== undefined ? req.body.bio : "";
+        userAactualizar.nick = req.body.nick !== undefined ? req.body.nick : "" ;
+        userAactualizar.email = req.body.email !== undefined ? req.body.email : "" ;
+        userAactualizar.password = req.body.password !== undefined ? await bcrypt.hash(<string>req.body.password, 10) : "" ;
 
+        // Valido que el usuario exista en la base de datos
+        const usuario: ClsUser | null = await userModel.findById<IntUser>(userAactualizar._id).exec();
+        if ( usuario === null ) {
+            throw new Error("El usuario no existe en la Base de Datos");
+        }
 
+        // Si usuario existe en la base de datos, valido que no exista otro usuario con el mismo nick o email
+        const result: ClsUser[] = await userModel.find<IntUser>({
+            $and:[
+                {
+                    _id:{$ne: userAactualizar._id}
 
-        /*const x: ClsUser = req.body;
+                },
 
-        if ( x instanceof ClsUser ) {
-            console.log("OK!")
-        } else {
-            console.log("NOO OK!")
-        }*/
+                {
+                    $or: [{email: userAactualizar.email!}, {nick: userAactualizar.nick!}]
+                }
 
+            ]           
+        }).exec();
+
+        if ( result.length > 0 ) {
+            throw new Error("El email o nick que intenta registrar, ya existe");
+        }
+
+        const userUpdated: ClsUser | null = await userModel.findByIdAndUpdate<IntUser>(
+            userAactualizar._id,
+            {
+                name: userAactualizar.name,
+                surname: userAactualizar.surname,
+                bio: userAactualizar.bio,
+                nick: userAactualizar.nick,
+                email: userAactualizar.email,
+                password: userAactualizar.password
+            },
+            {new: true}
+        );
         
-        
-
         return res.status(200).json({
             status: "success",
-            message: "OK!"
+            message: "OK!",
+            user: userUpdated
         });
 
     } catch( error ) {
