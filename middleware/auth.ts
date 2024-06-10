@@ -25,6 +25,8 @@ const auth = (req: Request, res: Response, next: NextFunction) => {
 
         // Agregar datos del usuario al body del request
         // req.body.session=session;
+        req.headers.session = JSON.stringify(session);
+        
                 
 
     }catch( error ) {

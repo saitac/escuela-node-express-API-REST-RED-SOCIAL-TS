@@ -1,8 +1,9 @@
 import {Request, Response} from "express"
+import fs from "fs"
+import path from "path"
 import bcrypt from "bcrypt"
-import jwt from "jwt-simple"
 import userModel from "../models/user"
-import { secretPassword, servCreateToken } from "../services/jwt"
+import { servCreateToken } from "../services/jwt"
 import IntUser from "../interfaces/user"
 import { ClsSession, ClsUser } from "../classes/classes"
 import { isNumeric } from "validator"
@@ -254,11 +255,93 @@ const userUpdate = async (req: Request, res: Response) => {
     }
 }
 
+const userUpload = async (req: Request, res: Response) => {
+    try {
+
+        // valido que venga un parámetro con el file
+        if ( !req.file ) {
+            throw new Error("La petición no incluye la imágen.");
+        }
+
+        // obtengo el nombre del archivo
+        const image: Express.Multer.File = req.file;
+
+        // obtener la extensión en el nombre del archivo
+        const imageName: string[] = image.originalname.split("\.");
+        const extension = imageName[1].toLocaleLowerCase();
+
+        // comprobar extensión
+        if ( !["png","jpg","jpeg","gif"].includes(extension)) {
+            // Si extensión no es correcta, se elimina el archivo cargado y se envía mensaje de error
+            fs.unlinkSync(image.path);
+            throw new Error("El tipo de archivo no es valido");
+        }
+
+        // guardar la imagen en la BD
+        const session: ClsSession = JSON.parse(<string>req.headers.session);
+        const user: ClsUser | null = await userModel.findByIdAndUpdate<IntUser>(session.user._id, {
+            image: image.filename
+        },{returnDocument:"after"}).exec();
+
+        // Si todo sale correcto, devuelvo un status 200 con el usuario actualizado
+        return res.status(200).json({
+            status: "success",
+            message: "Imagen guardada correctamente.",
+            user,           
+        });
+
+    } catch( error ) {
+        if ( error instanceof Error) {
+            return res.status(400).json({
+                status: "error",
+                message: error.message
+            });
+        }
+    }
+
+}
+
+const userAvatar = (req: Request, res: Response) => {
+    try{
+        
+        // obtener el parámetro de la url
+        const file: string = req.params.file;
+
+        // montar el path real de la imagen
+        const filePath: string = `./uploads/avatars/${file}`;
+
+        // comprobar que el archivo existe
+        fs.stat(filePath, (err: NodeJS.ErrnoException | null, stats: fs.Stats) => {
+            if (err) {
+                return res.status(400).json({
+                    status:"error",
+                    message: "No esxiste la imagen"
+                })
+            }
+
+            return res.sendFile(path.resolve(filePath));
+
+        });
+
+    } catch( error ) {
+        if ( error instanceof Error ) {
+            return res.status(400).json({
+                status:"error",
+                message: error.message
+            });
+        }
+    }
+
+}
+
+
 export {
     userPrueba,
     userRegister,
     userLogin,
     userProfile,
     userList,
-    userUpdate
+    userUpdate,
+    userUpload,
+    userAvatar
 }
