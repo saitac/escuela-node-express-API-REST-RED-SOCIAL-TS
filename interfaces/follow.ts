@@ -1,9 +1,9 @@
-import IntUser from "./user"
+import mongoose from "mongoose"
 
 interface  IntFollow {
     _id?: string,
-    user: IntUser,
-    followed: IntUser,
+    user: mongoose.Types.ObjectId | null,
+    followed: mongoose.Types.ObjectId | null,
     created_at?: Date
 }
 

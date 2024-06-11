@@ -1,6 +1,8 @@
 import moment  from "moment"
 import IntUser from "../interfaces/user"
 import IntSession from "../interfaces/session"
+import IntFollow from "../interfaces/follow"
+import mongoose from "mongoose"
 
 class ClsUser implements IntUser {
     _id?: string
@@ -39,11 +41,22 @@ class ClsSession implements IntSession {
         this.iat = iat;
         this.exp = exp;
     }
-        
+}
 
+class ClsFollow implements IntFollow {
+    _id?: string | undefined
+    user: mongoose.Types.ObjectId | null
+    followed: mongoose.Types.ObjectId | null
+    
+    constructor(_id: string = "", user: mongoose.Types.ObjectId | null = null, followed: mongoose.Types.ObjectId | null  = null) {
+        this._id = _id;
+        this.user = user;
+        this.followed = followed;
+    }
 }
     
 export {
     ClsUser,
-    ClsSession
+    ClsSession,
+    ClsFollow
 }
