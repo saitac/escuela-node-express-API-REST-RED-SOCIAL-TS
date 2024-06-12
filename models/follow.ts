@@ -1,4 +1,4 @@
-import {Schema, model} from "mongoose"
+import mongoose, {Schema, model} from "mongoose"
 import IntFollow from "../interfaces/follow";
 
 const followSchema = new Schema<IntFollow>({

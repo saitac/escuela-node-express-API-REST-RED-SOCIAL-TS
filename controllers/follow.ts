@@ -3,6 +3,7 @@ import followModel from "../models/follow"
 import { ClsSession } from "../classes/classes"
 import IntFollow from "../interfaces/follow"
 import mongoose from "mongoose"
+import { Schema } from "mongoose"
 
 
 
@@ -63,10 +64,44 @@ const followSave = (req: Request, res: Response) => {
 const followDelete = (req: Request, res: Response) => {
     try {
 
-        return res.status(200).json({
-            status: "success",
-            message: "OK!"
-        });
+        // obtengo el body
+        const params = req.body;
+
+        // valido si llega el parámetro followed que contiene el id del followed a eliminar
+        if (!params.followed) {
+            throw new Error("Faltan parámetros en la consulta");
+        }
+
+        // obtener el usuario identificado
+        const session: ClsSession = JSON.parse(<string>req.headers.session);
+
+        // busco y eliminto el registro
+        followModel.findOneAndDelete({
+            $and:[
+                {user: session.user._id},
+                {followed: params.followed}
+            ]           
+        }).exec()
+        .catch( error => {
+            return res.status(400).json({
+                status: "error",
+                message: "Se produjo un error al intentar eliminar el registro",
+            });
+        })
+        .then( document => {
+            let mensaje: string = "";
+            if (!document) {
+                mensaje = "Documento no encontrado"
+            } else {
+                mensaje = "Documento eliminado correctamente"
+            }
+
+            return res.status(200).json({
+                status: "success",
+                message: mensaje,
+                document
+            });
+        })
 
     } catch ( error ) {
         if (error instanceof Error) {
