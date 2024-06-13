@@ -1,9 +1,11 @@
-import {Request, Response} from "express"
+import {Request, Response, json} from "express"
 import followModel from "../models/follow"
 import { ClsSession } from "../classes/classes"
 import IntFollow from "../interfaces/follow"
 import mongoose from "mongoose"
 import { Schema } from "mongoose"
+import IntSession from "../interfaces/session"
+import { isNumeric } from "validator"
 
 
 
@@ -113,9 +115,89 @@ const followDelete = (req: Request, res: Response) => {
     }
 }
 
+// a quien sigo
+const followFollowing = (req: Request, res: Response) => {
+    try{
+
+        // Obtener la sesion del usuario identificado
+        const session: ClsSession = JSON.parse(<string>req.headers.session);
+        
+        if (!(session.user)){
+            throw new Error("Hay un error con la sesión del usuario");
+        }
+
+        // Obtener el Id del usuario de la sesión
+        let userId: string | undefined = session.user._id
+
+        // comprobar si me llega el id de usuario por la url como parámetro, si es así actualizo la variable
+        // userId
+        if ( req.params.id ) {
+            userId = req.params.id;
+        }
+
+        // comprobar si llega la página
+        let page: number = 1;
+        if ( req.params.page && isNumeric(req.params.page) ) {
+            page = +req.params.page;
+        }
+
+        // usuarios por página que quiero mostrar
+        const itemsPerPage: number = 5;
+
+        followModel.find({
+            user: userId
+        })
+        .catch(error => {
+            return res.status(400).json({
+                status:"error",
+                message:error.message
+            });
+        })
+        .then(followings => {
+            return res.status(200).json({
+                status:"success",
+                mensaje:"following",
+                followings
+            });
+        });
+
+        
+
+    }catch(error){
+        if (error instanceof Error){
+            return res.status(400).json({
+                status: "error",
+                message: error.message
+            });
+        }
+    }
+}
+
+// quien me sigue
+const followFollowers = (req: Request, res: Response) => {
+    try{
+
+        return res.status(200).json({
+            status:"success",
+            mensaje:"followFollowed"
+        });
+
+    }catch(error){
+        if (error instanceof Error){
+            return res.status(400).json({
+                status:"error",
+                message:error.message
+            });
+        }
+    }
+
+}
+
 
 export {
     followPrueba,
     followSave,
-    followDelete
+    followDelete,
+    followFollowing,
+    followFollowers
 }
