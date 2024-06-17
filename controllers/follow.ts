@@ -144,9 +144,20 @@ const followFollowing = (req: Request, res: Response) => {
         // usuarios por página que quiero mostrar
         const itemsPerPage: number = 5;
 
-        followModel.find({
+        // pagination options
+        const paginateOptions = {
+            sort: {_id: 1},
+            limit: itemsPerPage,
+            populate: [
+                {path: "user", select: "-password -role -__v"},
+                {path: "followed", select: "-password -role -__v"}
+            ],
+            page
+        }
+
+        followModel.paginate({
             user: userId
-        })
+        }, paginateOptions)
         .catch(error => {
             return res.status(400).json({
                 status:"error",
@@ -156,12 +167,10 @@ const followFollowing = (req: Request, res: Response) => {
         .then(followings => {
             return res.status(200).json({
                 status:"success",
-                mensaje:"following",
+                mensaje:"Listado de usuarios que me siguen",
                 followings
             });
         });
-
-        
 
     }catch(error){
         if (error instanceof Error){

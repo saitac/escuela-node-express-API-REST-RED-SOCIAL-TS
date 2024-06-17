@@ -1,4 +1,6 @@
-import mongoose, {Schema, model} from "mongoose"
+import {PaginateModel, Schema, model} from "mongoose"
+import paginate from "mongoose-paginate-v2";
+
 import IntFollow from "../interfaces/follow";
 
 const followSchema = new Schema<IntFollow>({
@@ -16,6 +18,9 @@ const followSchema = new Schema<IntFollow>({
     }
 });
 
-const followModel = model("follow", followSchema, "follows");
+/*const followModel = model("follow", followSchema, "follows");*/
+
+followSchema.plugin(paginate);
+const followModel = model<IntFollow, PaginateModel<IntFollow>>("follow", followSchema, "follows");
 
 export default followModel
