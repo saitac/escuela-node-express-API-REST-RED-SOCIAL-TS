@@ -1,10 +1,8 @@
-import {Request, Response, json} from "express"
+import {Request, Response} from "express"
 import followModel from "../models/follow"
 import { ClsSession } from "../classes/classes"
 import IntFollow from "../interfaces/follow"
 import mongoose from "mongoose"
-import { Schema } from "mongoose"
-import IntSession from "../interfaces/session"
 import { isNumeric } from "validator"
 
 
@@ -167,7 +165,7 @@ const followFollowing = (req: Request, res: Response) => {
         .then(followings => {
             return res.status(200).json({
                 status:"success",
-                mensaje:"Listado de usuarios que me siguen",
+                mensaje:"Listado de usuarios a los que sigo",
                 followings
             });
         });
@@ -186,9 +184,57 @@ const followFollowing = (req: Request, res: Response) => {
 const followFollowers = (req: Request, res: Response) => {
     try{
 
-        return res.status(200).json({
-            status:"success",
-            mensaje:"followFollowed"
+        // Obtener la sesion del usuario identificado
+        const session: ClsSession = JSON.parse(<string>req.headers.session);
+
+        if (!(session.user)){
+            throw new Error("Hay un error con la sesión del usuario");
+        }
+
+        // Obtener el Id del usuario de la sesión
+        let userId: string | undefined = session.user._id
+
+        // comprobar si me llega el id de usuario por la url como parámetro, si es así actualizo la variable
+        // userId
+        if ( req.params.id ) {
+            userId = req.params.id;
+        }
+
+        // comprobar si llega la página
+        let page: number = 1;
+        if ( req.params.page && isNumeric(req.params.page) ) {
+            page = +req.params.page;
+        }
+
+        // usuarios por página que quiero mostrar
+        const itemsPerPage: number = 5;
+
+        // pagination options
+        const paginateOptions = {
+            sort: {_id: 1},
+            limit: itemsPerPage,
+            populate: [
+                {path: "user", select: "-password -role -__v"},
+                {path: "followed", select: "-password -role -__v"}
+            ],
+            page
+        }
+
+        followModel.paginate({
+            followed: userId
+        }, paginateOptions)
+        .catch(error => {
+            return res.status(400).json({
+                status:"error",
+                message:error.message
+            });
+        })
+        .then(followers=>{
+            return res.status(200).json({
+                status:"success",
+                mensaje:"Listado de usuarios que me siguen",
+                followers
+            });
         });
 
     }catch(error){
@@ -202,11 +248,79 @@ const followFollowers = (req: Request, res: Response) => {
 
 }
 
+const followFollowingAndFollowFollowers = (req: Request, res: Response) => {
+    try{
+
+        // Obtener la sesion del usuario identificado
+        const session: ClsSession = JSON.parse(<string>req.headers.session);
+
+        if (!(session.user)){
+            throw new Error("Hay un error con la sesión del usuario");
+        }
+
+        // Obtener el Id del usuario de la sesión
+        let userId: string | undefined = session.user._id
+
+        // comprobar si me llega el id de usuario por la url como parámetro, si es así actualizo la variable
+        // userId
+        if ( req.params.id ) {
+            userId = req.params.id;
+        }
+
+        // Obtengo los followings y los followed
+        followings_list: [];
+        followers_list: []
+
+        followModel.find({
+            user: userId
+        }).select({
+            followed: 1,
+            _id: 0
+        }).catch(error=>{
+            return res.status(400).json({
+                status:"error",
+                message:error.message
+            });
+        }).then(followings=>{
+
+            
+            //followings_list
+
+            followModel.find({
+                followed: userId
+            }).select({
+                user: 1,
+                _id: 0
+            }).catch(error=>{
+                return res.status(400).json({
+                    status:"error",
+                    message:error.message
+                });
+            }).then(followers=>{
+
+                return res.status(200).json({
+                    followings,
+                    followers
+                })
+            })
+        })
+
+    }catch(error){
+        if ( error instanceof Error ) {
+            return res.status(400).json({
+                status:"error",
+                message:error.message
+            });
+        }
+    }
+}
+
 
 export {
     followPrueba,
     followSave,
     followDelete,
     followFollowing,
-    followFollowers
+    followFollowers,
+    followFollowingAndFollowFollowers
 }
