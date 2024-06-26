@@ -1,8 +1,8 @@
 import {Request, Response} from "express"
 import followModel from "../models/follow"
-import { ClsSession } from "../classes/classes"
+import { ClsFollow, ClsSession } from "../classes/classes"
 import IntFollow from "../interfaces/follow"
-import mongoose from "mongoose"
+import mongoose, { PaginateModel, Schema, model } from "mongoose"
 import { isNumeric } from "validator"
 
 
@@ -268,8 +268,50 @@ const followFollowingAndFollowFollowers = (req: Request, res: Response) => {
         }
 
         // Obtengo los followings y los followed
-        followings_list: [];
-        followers_list: []
+        let followings_list: [string];
+        let followers_list: []
+
+        // pagination options
+        const paginateOptionsFollowings = {
+            sort: {_id: 1},
+            select: {followed: 1, _id: 0}
+        };
+
+        const paginateOptionsFollowers = {
+            sort: {_id: 1},
+            select: {user: 1, _id: 0}
+        }
+
+        /*
+
+        followModel.paginate({
+            user: userId
+        }, paginateOptionsFollowings).catch(error=>{
+            return res.status(400).json({
+                status:"error",
+                message:error.message
+            });
+        }).then( (followings) => {
+
+            followModel.paginate({
+                followed: userId
+            }, paginateOptionsFollowers).catch(error=>{
+                return res.status(400).json({
+                    status:"error",
+                    message:error.message
+                });
+            }).then(followers=>{
+
+                return res.status(200).json({
+                    followings,
+                    followers
+                })
+            })
+        })
+
+        */
+
+    /*        
 
         followModel.find({
             user: userId
@@ -281,10 +323,7 @@ const followFollowingAndFollowFollowers = (req: Request, res: Response) => {
                 status:"error",
                 message:error.message
             });
-        }).then(followings=>{
-
-            
-            //followings_list
+        }).then((followings)=>{
 
             followModel.find({
                 followed: userId
@@ -304,6 +343,69 @@ const followFollowingAndFollowFollowers = (req: Request, res: Response) => {
                 })
             })
         })
+            */
+
+        /*
+
+.projection(
+            {followed1: {$toString: "followed"}}
+        )
+*/
+
+
+
+        followModel.find<PaginateModel<ClsFollow>>({
+            user: userId
+        }).select({
+            followed: 1,
+            _id: 0
+        }).catch(error=>{
+            return res.status(400).json({
+                status:"error",
+                message:error.message
+            });
+        }).then((followings: PaginateModel<ClsFollow, {}, {}>[] | Response<any, Record<string, any>>)=>{
+
+            if ( followings instanceof Array ) {
+                
+                followings.forEach( ( f: mongoose.PaginateModel<ClsFollow> ) => {
+
+                    const clsf: ClsFollow = JSON.parse(JSON.stringify(f));
+                    
+                    if ( clsf.followed ) {
+                        console.log(followings_list)
+                        //console.log(clsf.followed.toString());
+                        //followings_list.push(clsf.followed)
+                    }
+
+                    
+                    
+                    
+                });
+
+            }
+
+            followModel.find({
+                followed: userId
+            }).select({
+                user: 1,
+                _id: 0
+            }).catch(error=>{
+                return res.status(400).json({
+                    status:"error",
+                    message:error.message
+                });
+            }).then(followers=>{
+
+                return res.status(200).json({
+                    followings,
+                    followers
+                })
+            })
+        });
+
+
+        
 
     }catch(error){
         if ( error instanceof Error ) {

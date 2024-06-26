@@ -47,11 +47,13 @@ class ClsFollow implements IntFollow {
     _id?: string | undefined
     user: mongoose.Types.ObjectId | null
     followed: mongoose.Types.ObjectId | null
+    created_at: Date
     
-    constructor(_id: string = "", user: mongoose.Types.ObjectId | null = null, followed: mongoose.Types.ObjectId | null  = null) {
+    constructor(_id: string = "", user: mongoose.Types.ObjectId | null = null, followed: mongoose.Types.ObjectId | null  = null, created_at: Date = new Date()) {
         this._id = _id;
         this.user = user;
         this.followed = followed;
+        this.created_at = created_at;
     }
 }
     
