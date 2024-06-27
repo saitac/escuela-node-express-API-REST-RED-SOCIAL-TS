@@ -7,6 +7,7 @@ import { servCreateToken } from "../services/jwt"
 import IntUser from "../interfaces/user"
 import { ClsSession, ClsUser } from "../classes/classes"
 import { isNumeric } from "validator"
+import { followThisUser } from "../services/followService"
 
 const userPrueba = (req: Request, res: Response) => {
     return res.status(200).send({
@@ -124,8 +125,15 @@ const userProfile = async (req: Request, res: Response) => {
     try{
 
         const id = req.params.id //new mongoose.Types.ObjectId(id)
+        const session: ClsSession = JSON.parse(<string>req.headers.session);
 
         const usuario: ClsUser | null = await userModel.findById(id).select({password: 0, role: 0}).exec();
+        
+        let followInfo;
+        if ( session.user._id ) {
+            followInfo = await followThisUser(session.user._id,id);
+        }
+        
 
         if ( usuario === null ) { 
             throw new Error("El usuario no existe");
@@ -133,7 +141,10 @@ const userProfile = async (req: Request, res: Response) => {
         
         return res.status(200).json({
             status: "success",
-            user: usuario
+            user: usuario,
+            following: followInfo ? followInfo.following : {},
+            follower: followInfo ? followInfo.follower : {}
+
         })
 
     } catch( error ) {
